@@ -44,10 +44,10 @@ public class ElasticsearchWebClient {
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .clientConnector(new ReactorClientHttpConnector(HttpClient.from(TcpClient
                         .create()
-                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.getElasticsearch().connectTimeoutInMs)
+                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.connectTimeoutInMs)
                         .doOnConnected(connection -> {
-                            connection.addHandlerLast(new ReadTimeoutHandler(properties.getElasticsearch().readTimeoutInMs, TimeUnit.MILLISECONDS));
-                            connection.addHandlerLast(new WriteTimeoutHandler(properties.getElasticsearch().writeTimeoutInMs, TimeUnit.MILLISECONDS));
+                            connection.addHandlerLast(new ReadTimeoutHandler(properties.readTimeoutInMs, TimeUnit.MILLISECONDS));
+                            connection.addHandlerLast(new WriteTimeoutHandler(properties.writeTimeoutInMs, TimeUnit.MILLISECONDS));
                         }))))
                 .build();
     }
