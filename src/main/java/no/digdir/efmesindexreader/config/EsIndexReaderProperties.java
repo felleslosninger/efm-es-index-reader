@@ -18,16 +18,24 @@ public class EsIndexReaderProperties {
     @Valid
     private ElasticsearchProperties elasticsearch;
 
+    @Valid
+    private LoggingProxyProperties loggingProxy;
+
+    @NotNull
+    public long readTimeoutInMs;
+    @NotNull
+    public Integer connectTimeoutInMs;
+    @NotNull
+    public long writeTimeoutInMs;
     @Data
     public static class ElasticsearchProperties {
         @NotNull
         private URL endpointURL;
-        @NotNull
-        public long readTimeoutInMs;
-        @NotNull
-        public Integer connectTimeoutInMs;
-        @NotNull
-        public long writeTimeoutInMs;
+    }
 
+    @Data
+    public static class LoggingProxyProperties {
+        @NotNull
+        private URL endpointURL;
     }
 }

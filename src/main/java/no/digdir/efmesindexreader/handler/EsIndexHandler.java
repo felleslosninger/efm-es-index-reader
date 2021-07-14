@@ -1,30 +1,28 @@
 package no.digdir.efmesindexreader.handler;
 
 import lombok.RequiredArgsConstructor;
-import no.digdir.efmesindexreader.domain.data.HitDTO;
 import no.digdir.efmesindexreader.service.ElasticsearchIngestService;
-import org.springframework.http.MediaType;
+import no.digdir.efmesindexreader.service.LoggingProxyService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-import reactor.core.scheduler.Schedulers;
 
 @Component
 @RequiredArgsConstructor
 public class EsIndexHandler {
-    private final ElasticsearchIngestService service;
+    private final ElasticsearchIngestService elasticsearchIngestService;
+    private final LoggingProxyService loggingProxyService;
 
     public Mono<ServerResponse> getEsIndex(ServerRequest request) {
-        Mono<ServerResponse> index = ServerResponse.ok()
-                .contentType(MediaType.APPLICATION_JSON)
-                .body(service.getLogsFromIndex(request.queryParam("index").get()), HitDTO.class)
-                .subscribeOn(Schedulers.boundedElastic());
-        System.out.println("Returning serverResponse...");
-        return index;
+        elasticsearchIngestService.getLogsFromIndex(request.queryParam("index").get())
+            .subscribe(hit -> loggingProxyService.send(hit.getSource())); //TODO kommenter inn og fix connection til logging proxy
+            //.subscribe(hit -> System.out.println(hit.getSource()));
+        return ServerResponse.ok().bodyValue("OK, fetching index: " + request.queryParam("index").get());
+
     }
 
-    public Mono<ServerResponse> getTest(ServerRequest serverRequest) {
-        return ServerResponse.ok().body("Hi world", String.class);
+    public Mono<ServerResponse> getAllCollectedIndex(ServerRequest serverRequest) {
+        return ServerResponse.ok().bodyValue("i'm a placeholder for a list of collected indexes which requires a DB");
     }
 }
