@@ -2,6 +2,7 @@ package no.digdir.efmesindexreader.handler;
 
 import lombok.RequiredArgsConstructor;
 import no.digdir.efmesindexreader.service.ElasticsearchIngestService;
+import no.digdir.efmesindexreader.service.LoggingProxyService;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
@@ -10,16 +11,18 @@ import reactor.core.publisher.Mono;
 @Component
 @RequiredArgsConstructor
 public class EsIndexHandler {
-    private final ElasticsearchIngestService service;
+    private final ElasticsearchIngestService elasticsearchIngestService;
+    private final LoggingProxyService loggingProxyService;
 
     public Mono<ServerResponse> getEsIndex(ServerRequest request) {
-        service.getLogsFromIndex(request.queryParam("index").get());
-        //Subscribe her og gjer det som må gjerast med kall til anna webvcleitn som sender til logging proxy. returner berre ok til brukar.
-        return ServerResponse.ok().body("OK", String.class);
+        elasticsearchIngestService.getLogsFromIndex(request.queryParam("index").get())
+            .subscribe(hit -> loggingProxyService.send(hit.getSource())); //TODO kommenter inn og fix connection til logging proxy
+            //.subscribe(hit -> System.out.println(hit.getSource()));
+        return ServerResponse.ok().bodyValue("OK, fetching index: " + request.queryParam("index").get());
 
     }
 
-    public Mono<ServerResponse> getTest(ServerRequest serverRequest) {
-        return ServerResponse.ok().body("Hi world", String.class);
+    public Mono<ServerResponse> getAllCollectedIndex(ServerRequest serverRequest) {
+        return ServerResponse.ok().bodyValue("i'm a placeholder for a list of collected indexes which requires a DB");
     }
 }

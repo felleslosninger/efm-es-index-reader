@@ -24,7 +24,7 @@ public class EsIndexRouter {
                 .route(GET("/esindex")
                                 .and(queryParam("index", Objects::nonNull))
                         , esIndexHandler::getEsIndex)
-                .andRoute(GET("/esindex/saved"), esIndexHandler::getTest);
+                .andRoute(GET("/esindex/all"), esIndexHandler::getAllCollectedIndex);
     }
 }
 

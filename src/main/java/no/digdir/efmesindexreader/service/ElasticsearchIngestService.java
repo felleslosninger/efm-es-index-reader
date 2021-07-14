@@ -13,7 +13,6 @@ import reactor.core.publisher.Mono;
 @Slf4j
 public class ElasticsearchIngestService {
     private final ElasticsearchWebClient client;
-    int i = 0;
 
     public Flux<HitDTO> getLogsFromIndex(String index) {
         return Flux.create(fluxSink -> {
@@ -48,17 +47,13 @@ public class ElasticsearchIngestService {
                                 .doOnError(sink::error)
                                 .subscribe(clearScrollDTO -> {
                                     if (clearScrollDTO.isSucceeded()) {
-                                        i+=10000;
-                                        log.trace("total loaded from ES index: " + i);
                                         log.trace("Successfully cleared scroll. Ready for another index");
-                                            sink.complete();
+                                        sink.complete();
                                     } else {
                                         sink.error(new Exception("Failed to clear scroll"));
                                     }
                                 });
                     } else {
-                        i+=esDto.getHits().getHitDtoList().size();
-                        System.out.println("tot = " + i);
                         esDto.getHits().setHitDtoList(null);
                         getNextScrollFromIndex(scrollId, sink);
                     }

@@ -14,7 +14,9 @@ import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
+import reactor.core.publisher.Mono;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.TcpClient;
 
 import java.net.URI;
@@ -34,7 +36,7 @@ public class LoggingProxyWebClient {
         this.webClient = WebClient.builder()
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .clientConnector(new ReactorClientHttpConnector(HttpClient.from(TcpClient
-                        .create()
+                        .create(ConnectionProvider.create("provider", 50000))
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.connectTimeoutInMs)
                         .doOnConnected(connection -> {
                             connection.addHandlerLast(new ReadTimeoutHandler(properties.getReadTimeoutInMs(), TimeUnit.MILLISECONDS));
@@ -54,15 +56,17 @@ public class LoggingProxyWebClient {
         return uri;
     }
 
-    //TODO
+    //TODO Autentisere for å bruke logging proxy. 
     public void sendLogEvent(JsonNode source) {
-        webClient.post()
+        Mono<ResponseEntity> responseEntityMono = webClient.post()
                 .uri(uri)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .acceptCharset(StandardCharsets.UTF_8)
                 .bodyValue(source)
                 .retrieve()
                 .bodyToMono(ResponseEntity.class);
+                //.onErrorResume(Exception.class, ex -> Mono.empty());
+        responseEntityMono.subscribe(s -> log.info(s.toString()));
     }
 
 }
