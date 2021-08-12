@@ -4,7 +4,7 @@ import no.digdir.efmesindexreader.config.EsIndexReaderProperties;
 import no.digdir.efmesindexreader.service.ElasticsearchWebClient;
 import okhttp3.mockwebserver.MockWebServer;
 import org.assertj.core.api.Assertions;
-import org.junit.Test;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
