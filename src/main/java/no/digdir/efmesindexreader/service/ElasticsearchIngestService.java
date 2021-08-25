@@ -19,13 +19,12 @@ public class ElasticsearchIngestService {
             client.openScrollIndex(index)
                     //.timeout(Duration.ofSeconds(5))
                     //.retryWhen(Retry.backoff(10, Duration.ofSeconds(1)))
-
                     .doOnError(fluxSink::error)
                     .onErrorResume(Exception.class, ex -> Mono.empty())
                     .subscribe(esDto -> {
                         esDto.getHits().getHitDtoList().forEach(fluxSink::next);
                         getNextScrollFromIndex(esDto.getScrollId(), fluxSink);
-                        System.out.println("total is " + esDto.getHits().getTotal());
+                        log.info("Total status-log events in index is: " + esDto.getHits().getTotal());
                     });
         });
     }
@@ -38,7 +37,6 @@ public class ElasticsearchIngestService {
                 .doOnError(sink::error)
                 .subscribe(esDto -> {
 //                    esDto.getHits().getHitDtoList().forEach(HitDTO::getSource);
-                    //TODO sende json data til logging proxy endepunkt. Kan dette startast på ein anna tråd så eg slepp vente på det før den går vidare.
                     esDto.getHits().getHitDtoList().forEach(sink::next);
                     if (esDto.getHits().getHitDtoList().isEmpty()) {
                         client.clearScroll(scrollId)

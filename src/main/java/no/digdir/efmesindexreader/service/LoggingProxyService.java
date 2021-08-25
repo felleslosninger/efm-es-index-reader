@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
 
 @Service
 @RequiredArgsConstructor
@@ -17,7 +20,10 @@ public class LoggingProxyService {
      * @param source
      */
     public void send(JsonNode source) {
-        webClient.sendLogEvent(source);
+        webClient.sendLogEvent(source)
+                //.timeout(Duration.ofSeconds(5))
+                .retryWhen(Retry.fixedDelay(5, Duration.ofSeconds(4)))
+                .subscribe();
     }
 
 }

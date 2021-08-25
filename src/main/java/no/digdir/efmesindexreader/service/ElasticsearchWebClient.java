@@ -137,7 +137,7 @@ public class ElasticsearchWebClient {
     }
 
     @SneakyThrows(URISyntaxException.class)
-    private URI getDeleteScrollURI(String scrollId) {
+    public URI getDeleteScrollURI(String scrollId) {
         UriComponentsBuilder builder = UriComponentsBuilder.fromUri(properties.getElasticsearch().getEndpointURL().toURI())
                 .path("_search/scroll")
                 .queryParam("scroll_id", scrollId)

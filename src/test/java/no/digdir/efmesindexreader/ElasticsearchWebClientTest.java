@@ -1,54 +1,86 @@
 package no.digdir.efmesindexreader;
 
 import no.digdir.efmesindexreader.config.EsIndexReaderProperties;
+import no.digdir.efmesindexreader.domain.data.EsIndexDTO;
+import no.digdir.efmesindexreader.handler.EsIndexHandler;
 import no.digdir.efmesindexreader.service.ElasticsearchWebClient;
+import no.digdir.efmesindexreader.service.LoggingProxyService;
+import no.digdir.efmesindexreader.service.LoggingProxyWebClient;
 import okhttp3.mockwebserver.MockWebServer;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
 import java.net.URI;
 
-import static org.mockito.Mockito.when;
-
-@SpringBootTest
-@AutoConfigureMockMvc
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+//@AutoConfigureWebTestClient
+@ExtendWith(SpringExtension.class)
+@TestPropertySource("classpath:/config/application-test.properties")
+@ActiveProfiles("test")
 public class ElasticsearchWebClientTest {
-	//test med å bruke springrunner i greie i staden for og så autowired i staden for injectedmocks, mockbean i staden for mock. går også å bruke spy til.
 	private static MockWebServer mockWebServer;
 
-	@MockBean
+	@Autowired
 	private EsIndexReaderProperties properties;
 
-	@MockBean
+	private EsIndexReaderProperties.ElasticsearchProperties elasticsearchProperties;
+
 	private ElasticsearchWebClient target;
+
+	@Autowired
+	private WebTestClient webTestClient;
+
+	@MockBean
+	private EsIndexHandler handler;
+
+	@MockBean
+	private LoggingProxyService loggingProxyService;
+
+	@MockBean
+	private LoggingProxyWebClient loggingProxyWebClient;
 
 	URI esUri;
 
+	URI scrollUri;
+
+	URI deleteScrollUri;
+
+	String scrollId = "UniqueScrollId";
+
 	@BeforeAll
 	public static void setUp() throws IOException {
-		mockWebServer = new MockWebServer();
-		mockWebServer.start();
+		//mockWebServer = new MockWebServer();
+		//mockWebServer.start();
 	}
 
 	@BeforeEach
 	public void initialize() {
 		MockitoAnnotations.openMocks(this);
+		target = new ElasticsearchWebClient(properties);
+
 		esUri = UriComponentsBuilder.fromUriString(properties.getElasticsearch().getEndpointURL() + "graylog_0/_search?scroll=1m&pretty").build().toUri();
-		when(target.getScrollDownloadURI("graylog_0")).thenReturn(esUri);
+		scrollUri = UriComponentsBuilder.fromUriString(properties.getElasticsearch().getEndpointURL() + "_search/scroll?scroll=1m&scroll_id=" + scrollId + "&pretty").build().toUri();
+		deleteScrollUri = UriComponentsBuilder.fromUriString(properties.getElasticsearch().getEndpointURL() + "_search/scroll?scroll_id=" + scrollId + "&pretty").build().toUri();
 	}
 
 	@AfterAll
 	public static void tearDown() throws IOException {
-		mockWebServer.shutdown();
+		//mockWebServer.shutdown();
 
 	}
 
@@ -59,7 +91,36 @@ public class ElasticsearchWebClientTest {
 	}
 
 	@Test
+	public void getNextScrollURI_shouldReturnURI() {
+		URI uri = target.getNextScrollURI(scrollId);
+		Assertions.assertThat(uri.toString()).isEqualTo(scrollUri.toString());
+	}
+
+	@Test
+	public void getDeleteScrollID_shouldReturnURI() {
+		URI uri = target.getDeleteScrollURI(scrollId);
+		Assertions.assertThat(uri.toString()).isEqualTo(deleteScrollUri.toString());
+	}
+
+	@Test
 	public void openScrollIndex_shouldOpenScrollSuccessfully() {
+		//webTestClient.get().uri("/esindex/?index=graylog_0")
+		webTestClient.get().uri("/esindex/all")
+				.accept(MediaType.APPLICATION_JSON)
+				.exchange()
+				.expectStatus().isOk()
+				.expectBody(EsIndexDTO.class)
+				.consumeWith(response -> Assertions.assertThat(response.getResponseBody()).isNotNull());
+
+	}
+
+	@Test
+	public void getNextScroll_shouldReturnScrollSuccessfully() {
+
+	}
+
+	@Test
+	public void clearScroll_shouldSucceed() {
 
 	}
 }
