@@ -5,10 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Data;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-
 @Data
 public class SourceDTO {
     private String status;
@@ -18,35 +14,33 @@ public class SourceDTO {
     private String sender;
     private String direction;
     @JsonProperty("buildinfo_version")
-    private String buildVersion;
+    private String build_version;
    // @JsonProperty("timestamp")
-    private LocalDateTime timestamp;
+    private String timestamp;
     @JsonSetter
     @JsonAlias("@timestamp")
     public void setTimestamp(String timestamp) {
-        DateTimeFormatter sourceDateTime = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'");
-        LocalDateTime dateTime = LocalDateTime.parse(timestamp, sourceDateTime);
-        DateTimeFormatter targetFormat = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        LocalDateTime utc = LocalDateTime.parse(dateTime.atZone(ZoneId.of("UTC")).format(targetFormat));
-        this.timestamp = LocalDateTime.parse(dateTime.atZone(ZoneId.of("UTC")).format(targetFormat));
-    }
+        this.timestamp = timestamp.replace("T", " ");
+        this.timestamp = this.timestamp.replace("Z", "");
 
-    private Long orgnr;
+    }
+    private String orgnr;
     @JsonProperty("process_identifier")
-    private String processIdentifier;
+    private String process_identifier;
     @JsonProperty("sender_org_number")
-    private Long senderOrgNumber;
+    private String sender_org_number;
     @JsonProperty("HOSTNAME")
     private String hostname;
     @JsonProperty("message_id")
-    private String messageId;
+    private String message_id;
     @JsonProperty("conversation_id")
-    private String conversationId;
+    private String conversation_id;
     @JsonProperty("receiver_org_number")
-    private String receiverOrgNumber;
+    private String receiver_org_number;
     private String appname;
     @JsonProperty("service_identifier")
-    private String serviceIdentifier;
+    private String service_identifier;
+    private String logger_name;
     private String message;
     private String host;
 }

@@ -1,12 +1,12 @@
 package no.digdir.efmesindexreader.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.efmesindexreader.config.EsIndexReaderProperties;
+import no.digdir.efmesindexreader.domain.data.SourceDTO;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -59,7 +59,7 @@ public class LoggingProxyWebClient {
     }
 
     //TODO Autentisere for å bruke logging proxy. 
-    public Mono<ResponseEntity> sendLogEvent(JsonNode source) {
+    public Mono<ResponseEntity> sendLogEvent(SourceDTO source) {
         Mono<ResponseEntity> responseEntityMono = webClient.post()
                 .uri(uri)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)

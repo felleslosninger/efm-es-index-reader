@@ -1,8 +1,8 @@
 package no.digdir.efmesindexreader.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import no.digdir.efmesindexreader.domain.data.SourceDTO;
 import org.springframework.stereotype.Service;
 import reactor.util.retry.Retry;
 
@@ -19,7 +19,7 @@ public class LoggingProxyService {
      * SourceDTO.class describes the object.
      * @param source
      */
-    public void send(JsonNode source) {
+    public void send(SourceDTO source) {
         webClient.sendLogEvent(source)
                 //.timeout(Duration.ofSeconds(5))
                 .retryWhen(Retry.fixedDelay(5, Duration.ofSeconds(4)))
