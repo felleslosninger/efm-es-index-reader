@@ -17,8 +17,6 @@ public class ElasticsearchIngestService {
     public Flux<HitDTO> getLogsFromIndex(String index) {
         return Flux.create(fluxSink -> {
             client.openScrollIndex(index)
-                    //.timeout(Duration.ofSeconds(5))
-                    //.retryWhen(Retry.backoff(10, Duration.ofSeconds(1)))
                     .doOnError(fluxSink::error)
                     .onErrorResume(Exception.class, ex -> Mono.empty())
                     .subscribe(esDto -> {
@@ -31,17 +29,11 @@ public class ElasticsearchIngestService {
 
     private void getNextScrollFromIndex(String scrollId, FluxSink sink) {
         client.getNextScroll(scrollId)
-                //.timeout(Duration.ofSeconds(10))
-                //.onErrorResume(Exception.class, ex -> Mono.empty())
-                //.retryWhen(Retry.backoff(10, Duration.ofSeconds(1)))
                 .doOnError(sink::error)
                 .subscribe(esDto -> {
-//                    esDto.getHits().getHitDtoList().forEach(HitDTO::getSource);
                     esDto.getHits().getHitDtoList().forEach(sink::next);
                     if (esDto.getHits().getHitDtoList().isEmpty()) {
                         client.clearScroll(scrollId)
-                                //.timeout(Duration.ofSeconds(5))
-                                //.retryWhen(Retry.backoff(10, Duration.ofSeconds(1)))
                                 .doOnError(sink::error)
                                 .subscribe(clearScrollDTO -> {
                                     if (clearScrollDTO.isSucceeded()) {
@@ -58,4 +50,3 @@ public class ElasticsearchIngestService {
                 });
     }
 }
-

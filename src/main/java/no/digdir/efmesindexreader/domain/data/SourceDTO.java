@@ -10,8 +10,8 @@ public class SourceDTO {
     private String status;
     private String loglevel;
     private String description;
-    private String receiver;
-    private String sender;
+    private String receiver = "";
+    private String sender = "";
     private String direction;
     @JsonProperty("buildinfo_version")
     private String build_version;
@@ -20,9 +20,12 @@ public class SourceDTO {
     @JsonSetter
     @JsonAlias("@timestamp")
     public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp.replace("T", " ");
-        this.timestamp = this.timestamp.replace("Z", "");
-
+        //this.timestamp = timestamp.replace("T", " ");
+        this.timestamp = timestamp.replace("Z", "");
+        String substring = this.timestamp.substring(0, this.timestamp.lastIndexOf("."));
+        if(!substring.equals("-1")) {
+            this.timestamp = substring;
+        }
     }
     private String orgnr;
     @JsonProperty("process_identifier")

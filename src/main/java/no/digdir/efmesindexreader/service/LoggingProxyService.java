@@ -21,9 +21,9 @@ public class LoggingProxyService {
      */
     public void send(SourceDTO source) {
         webClient.sendLogEvent(source)
-                //.timeout(Duration.ofSeconds(5))
+                .delayElement(Duration.ofSeconds(1))
                 .retryWhen(Retry.fixedDelay(5, Duration.ofSeconds(4)))
-                .subscribe();
+               .subscribe();
     }
 
 }

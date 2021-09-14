@@ -35,8 +35,6 @@ public class LoggingProxyWebClient {
         this.properties = properties;
         this.webClient = WebClient.builder()
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                //.defaultHeaders(header -> header.setBasicAuth("user", "pw"))
-                //.filter(ExchangeFilterFunctions.basicAuthentication("user", "pw"))
                 .clientConnector(new ReactorClientHttpConnector(HttpClient.from(TcpClient
                         .create(ConnectionProvider.create("provider", 50000))
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.connectTimeoutInMs)
@@ -63,13 +61,10 @@ public class LoggingProxyWebClient {
         Mono<ResponseEntity> responseEntityMono = webClient.post()
                 .uri(uri)
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .headers(h -> h.setBasicAuth("user", "pw"))
                 .acceptCharset(StandardCharsets.UTF_8)
                 .bodyValue(source)
                 .retrieve()
                 .bodyToMono(ResponseEntity.class);
-                //.onErrorResume(Exception.class, ex -> Mono.empty());
-        //responseEntityMono.subscribe(s -> log.info(s.toString()));
         return responseEntityMono;
     }
 
