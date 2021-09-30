@@ -23,7 +23,6 @@ public class ElasticsearchIngestService {
                     .doOnError(fluxSink::error)
                     .onErrorResume(Exception.class, ex -> Mono.empty())
                     .subscribe(esDto -> {
-                        //esDto.getHits().getHitDtoList().forEach(fluxSink::next);
                         filterOldStatusAndPutInFlux(esDto.getHits().getHitDtoList(), fluxSink);
                         getNextScrollFromIndex(esDto.getScrollId(), fluxSink);
                         log.info("Total status-log events in index is: " + esDto.getHits().getTotal());
@@ -35,7 +34,6 @@ public class ElasticsearchIngestService {
         client.getNextScroll(scrollId)
                 .doOnError(fluxSink::error)
                 .subscribe(esDto -> {
-                    //esDto.getHits().getHitDtoList().forEach(fluxSink::next);
                     filterOldStatusAndPutInFlux(esDto.getHits().getHitDtoList(), fluxSink);
                     if (esDto.getHits().getHitDtoList().isEmpty()) {
                         client.clearScroll(scrollId)
