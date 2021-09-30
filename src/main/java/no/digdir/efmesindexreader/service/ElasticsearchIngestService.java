@@ -8,6 +8,9 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -20,33 +23,54 @@ public class ElasticsearchIngestService {
                     .doOnError(fluxSink::error)
                     .onErrorResume(Exception.class, ex -> Mono.empty())
                     .subscribe(esDto -> {
-                        esDto.getHits().getHitDtoList().forEach(fluxSink::next);
+                        //esDto.getHits().getHitDtoList().forEach(fluxSink::next);
+                        filterOldStatusAndPutInFlux(esDto.getHits().getHitDtoList(), fluxSink);
                         getNextScrollFromIndex(esDto.getScrollId(), fluxSink);
                         log.info("Total status-log events in index is: " + esDto.getHits().getTotal());
                     });
         });
     }
 
-    private void getNextScrollFromIndex(String scrollId, FluxSink sink) {
+    private void getNextScrollFromIndex(String scrollId, FluxSink fluxSink) {
         client.getNextScroll(scrollId)
-                .doOnError(sink::error)
+                .doOnError(fluxSink::error)
                 .subscribe(esDto -> {
-                    esDto.getHits().getHitDtoList().forEach(sink::next);
+                    //esDto.getHits().getHitDtoList().forEach(fluxSink::next);
+                    filterOldStatusAndPutInFlux(esDto.getHits().getHitDtoList(), fluxSink);
                     if (esDto.getHits().getHitDtoList().isEmpty()) {
                         client.clearScroll(scrollId)
-                                .doOnError(sink::error)
+                                .doOnError(fluxSink::error)
                                 .subscribe(clearScrollDTO -> {
                                     if (clearScrollDTO.isSucceeded()) {
                                         log.trace("Successfully cleared scroll. Ready for another index");
-                                        sink.complete();
+                                        fluxSink.complete();
                                     } else {
-                                        sink.error(new Exception("Failed to clear scroll"));
+                                        fluxSink.error(new Exception("Failed to clear scroll"));
                                     }
                                 });
                     } else {
                         esDto.getHits().setHitDtoList(null);
-                        getNextScrollFromIndex(scrollId, sink);
+                        getNextScrollFromIndex(scrollId, fluxSink);
                     }
                 });
+    }
+
+    public void filterOldStatusAndPutInFlux(List<HitDTO> list, FluxSink fluxSink) {
+        list.stream()
+                .filter(hit -> !oldStatuses().contains(hit.getSource().getStatus()))
+                .forEach(fluxSink::next);
+    }
+
+    public List<String> oldStatuses() {
+        List<String> statusList = new ArrayList<>();
+        statusList.add("AAPNING");
+        statusList.add("KLAR_FOR_MOTTAK");
+        statusList.add("POPPET");
+        statusList.add("LEVERING");
+        statusList.add("LEST_FRA_SERVICEBUS");
+        statusList.add("VARSLING_FEILET");
+        statusList.add("KLAR_FOR_PRINT");
+
+        return statusList;
     }
 }

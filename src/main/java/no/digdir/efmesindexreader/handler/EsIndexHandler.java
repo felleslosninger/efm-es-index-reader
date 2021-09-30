@@ -15,8 +15,9 @@ public class EsIndexHandler {
     private final LoggingProxyService loggingProxyService;
 
     public Mono<ServerResponse> getEsIndex(ServerRequest request) {
+
         elasticsearchIngestService.getLogsFromIndex(request.queryParam("index").get())
-            //.subscribe(hit -> System.out.println(hit.getSource()));
+            //.subscribe(hit ->System.out.println(hit.getSource()));
             .subscribe(hit -> loggingProxyService.send(hit.getSource()));
         return ServerResponse.ok().bodyValue("OK, fetching index: " + request.queryParam("index").get());
     }
