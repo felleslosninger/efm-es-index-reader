@@ -1,6 +1,7 @@
 package no.digdir.efmesindexreader.domain.data;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Data;
@@ -28,14 +29,16 @@ public class SourceDTO {
         }
     }
     private String orgnr;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("process_identifier")
-    private String process_identifier = "";
+    private String process_identifier;
     @JsonProperty("sender_org_number")
     private String sender_org_number;
     @JsonProperty("HOSTNAME")
     private String hostname;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("message_id")
-    private String message_id = "";
+    private String message_id;
     @JsonProperty("conversation_id")
     private String conversation_id;
     @JsonProperty("receiver_org_number")
@@ -45,5 +48,6 @@ public class SourceDTO {
     private String service_identifier;
     private String logger_name;
     private String message;
-    private String host = "";
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    private String host;
 }

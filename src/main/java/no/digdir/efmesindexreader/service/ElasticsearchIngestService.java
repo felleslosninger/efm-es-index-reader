@@ -8,7 +8,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -16,6 +15,8 @@ import java.util.List;
 @Slf4j
 public class ElasticsearchIngestService {
     private final ElasticsearchWebClient client;
+    private static List<String> oldStatuses = List.of(new String[]{"AAPNING", "KLAR_FOR_MOTTAK", "POPPET", "LEST_FRA_SERVICEBUS",
+            "LEVERING", "VARSLING_FEILET", "KLAR_FOR_PRINT"});
 
     public Flux<HitDTO> getLogsFromIndex(String index) {
         return Flux.create(fluxSink -> {
@@ -55,20 +56,8 @@ public class ElasticsearchIngestService {
 
     public void filterOldStatusAndPutInFlux(List<HitDTO> list, FluxSink fluxSink) {
         list.stream()
-                .filter(hit -> !oldStatuses().contains(hit.getSource().getStatus()))
+                .filter(hit -> !oldStatuses.contains(hit.getSource().getStatus()))
                 .forEach(fluxSink::next);
     }
 
-    public List<String> oldStatuses() {
-        List<String> statusList = new ArrayList<>();
-        statusList.add("AAPNING");
-        statusList.add("KLAR_FOR_MOTTAK");
-        statusList.add("POPPET");
-        statusList.add("LEVERING");
-        statusList.add("LEST_FRA_SERVICEBUS");
-        statusList.add("VARSLING_FEILET");
-        statusList.add("KLAR_FOR_PRINT");
-
-        return statusList;
-    }
 }

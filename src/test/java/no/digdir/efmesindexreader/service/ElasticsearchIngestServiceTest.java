@@ -6,23 +6,21 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
-import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.mockito.Mockito.when;
-
 @RunWith(MockitoJUnitRunner.class)
+@TestPropertySource("classpath:/config/application-test.properties")
+@ActiveProfiles("test")
 public class ElasticsearchIngestServiceTest {
 
-    @Spy
     @InjectMocks
     ElasticsearchIngestService service;
-
-    private List<String> oldStatusList = new ArrayList<>();
 
     private List<HitDTO> hitDTOList = new ArrayList<>();
 
@@ -38,17 +36,8 @@ public class ElasticsearchIngestServiceTest {
 
     private int hitSize = 0;
 
-
     @Before
     public void setup() {
-        oldStatusList.add("AAPNING");
-        oldStatusList.add("KLAR_FOR_MOTTAK");
-        oldStatusList.add("POPPET");
-        oldStatusList.add("LEVERING");
-        oldStatusList.add("LEST_FRA_SERVICEBUS");
-        oldStatusList.add("KLAR_FOR_PRINT");
-        oldStatusList.add("VARSLING_FEILET");
-
         sourceDTO1.setStatus("SENDT");
         sourceDTO2.setStatus("AAPNING");
         sourceDTO3.setStatus("POPPET");
@@ -69,14 +58,13 @@ public class ElasticsearchIngestServiceTest {
 
     @Test
     public void filterOldStatusAndPutInFluxTest_shouldFilter() {
-        List<HitDTO> hitList = new ArrayList<>();
-        when(service.oldStatuses()).thenReturn(oldStatusList);
+        List<HitDTO> filteredResult = new ArrayList<>();
         Flux<HitDTO> hitDTOFlux = Flux.create(fluxSink -> {
             service.filterOldStatusAndPutInFlux(hitDTOList, fluxSink);
         });
         hitDTOFlux.subscribe(p -> {
-            hitList.add(p);
+            filteredResult.add(p);
         });
-        assert(hitList.size() < hitSize);
+        assert(filteredResult.size() < hitSize);
     }
 }
