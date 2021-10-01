@@ -7,12 +7,13 @@ import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Data;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SourceDTO {
     private String status;
     private String loglevel;
     private String description;
-    private String receiver = "";
-    private String sender = "";
+    private String receiver;
+    private String sender;
     private String direction;
     @JsonProperty("buildinfo_version")
     private String build_version;
@@ -29,14 +30,12 @@ public class SourceDTO {
         }
     }
     private String orgnr;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("process_identifier")
     private String process_identifier;
     @JsonProperty("sender_org_number")
     private String sender_org_number;
     @JsonProperty("HOSTNAME")
     private String hostname;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonProperty("message_id")
     private String message_id;
     @JsonProperty("conversation_id")
@@ -48,6 +47,5 @@ public class SourceDTO {
     private String service_identifier;
     private String logger_name;
     private String message;
-    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String host;
 }
