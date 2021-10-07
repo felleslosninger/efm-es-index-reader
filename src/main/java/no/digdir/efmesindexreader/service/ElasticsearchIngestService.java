@@ -15,8 +15,8 @@ import java.util.List;
 @Slf4j
 public class ElasticsearchIngestService {
     private final ElasticsearchWebClient client;
-    private static List<String> oldStatuses = List.of(new String[]{"AAPNING", "KLAR_FOR_MOTTAK", "POPPET", "LEST_FRA_SERVICEBUS",
-            "LEVERING", "VARSLING_FEILET", "KLAR_FOR_PRINT"});
+    private static List<String> oldStatuses = List.of("AAPNING", "KLAR_FOR_MOTTAK", "POPPET", "LEST_FRA_SERVICEBUS",
+            "LEVERING", "VARSLING_FEILET", "KLAR_FOR_PRINT");
 
     public Flux<HitDTO> getLogsFromIndex(String index) {
         return Flux.create(fluxSink -> {
