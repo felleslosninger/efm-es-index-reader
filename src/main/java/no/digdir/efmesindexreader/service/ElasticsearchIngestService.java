@@ -8,11 +8,15 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
 import reactor.core.publisher.Mono;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class ElasticsearchIngestService {
     private final ElasticsearchWebClient client;
+    private static List<String> oldStatuses = List.of("AAPNING", "KLAR_FOR_MOTTAK", "POPPET", "LEST_FRA_SERVICEBUS",
+            "LEVERING", "VARSLING_FEILET", "KLAR_FOR_PRINT");
 
     public Flux<HitDTO> getLogsFromIndex(String index) {
         return Flux.create(fluxSink -> {
@@ -20,33 +24,40 @@ public class ElasticsearchIngestService {
                     .doOnError(fluxSink::error)
                     .onErrorResume(Exception.class, ex -> Mono.empty())
                     .subscribe(esDto -> {
-                        esDto.getHits().getHitDtoList().forEach(fluxSink::next);
+                        filterOldStatusAndPutInFlux(esDto.getHits().getHitDtoList(), fluxSink);
                         getNextScrollFromIndex(esDto.getScrollId(), fluxSink);
                         log.info("Total status-log events in index is: " + esDto.getHits().getTotal());
                     });
         });
     }
 
-    private void getNextScrollFromIndex(String scrollId, FluxSink sink) {
+    private void getNextScrollFromIndex(String scrollId, FluxSink fluxSink) {
         client.getNextScroll(scrollId)
-                .doOnError(sink::error)
+                .doOnError(fluxSink::error)
                 .subscribe(esDto -> {
-                    esDto.getHits().getHitDtoList().forEach(sink::next);
+                    filterOldStatusAndPutInFlux(esDto.getHits().getHitDtoList(), fluxSink);
                     if (esDto.getHits().getHitDtoList().isEmpty()) {
                         client.clearScroll(scrollId)
-                                .doOnError(sink::error)
+                                .doOnError(fluxSink::error)
                                 .subscribe(clearScrollDTO -> {
                                     if (clearScrollDTO.isSucceeded()) {
                                         log.trace("Successfully cleared scroll. Ready for another index");
-                                        sink.complete();
+                                        fluxSink.complete();
                                     } else {
-                                        sink.error(new Exception("Failed to clear scroll"));
+                                        fluxSink.error(new Exception("Failed to clear scroll"));
                                     }
                                 });
                     } else {
                         esDto.getHits().setHitDtoList(null);
-                        getNextScrollFromIndex(scrollId, sink);
+                        getNextScrollFromIndex(scrollId, fluxSink);
                     }
                 });
     }
+
+    public void filterOldStatusAndPutInFlux(List<HitDTO> list, FluxSink fluxSink) {
+        list.stream()
+                .filter(hit -> !oldStatuses.contains(hit.getSource().getStatus()))
+                .forEach(fluxSink::next);
+    }
+
 }

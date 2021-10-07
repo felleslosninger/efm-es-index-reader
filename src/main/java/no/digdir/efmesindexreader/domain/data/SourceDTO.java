@@ -1,17 +1,19 @@
 package no.digdir.efmesindexreader.domain.data;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import lombok.Data;
 
 @Data
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SourceDTO {
     private String status;
     private String loglevel;
     private String description;
-    private String receiver = "";
-    private String sender = "";
+    private String receiver;
+    private String sender;
     private String direction;
     @JsonProperty("buildinfo_version")
     private String build_version;
