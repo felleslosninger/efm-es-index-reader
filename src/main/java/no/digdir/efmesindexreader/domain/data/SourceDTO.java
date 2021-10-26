@@ -11,7 +11,6 @@ import lombok.Data;
 public class SourceDTO {
     private String status;
     private String loglevel;
-    private String description;
     private String receiver;
     private String sender;
     private String direction;
@@ -24,6 +23,7 @@ public class SourceDTO {
     public void setTimestamp(String timestamp) {
         //this.timestamp = timestamp.replace("T", " ");
         this.timestamp = timestamp.replace("Z", "");
+        this.timestamp = timestamp.replace(" ", "T");
         String substring = this.timestamp.substring(0, this.timestamp.lastIndexOf("."));
         if(!substring.equals("-1")) {
             this.timestamp = substring;
@@ -34,8 +34,6 @@ public class SourceDTO {
     private String process_identifier;
     @JsonProperty("sender_org_number")
     private String sender_org_number;
-    @JsonProperty("HOSTNAME")
-    private String hostname;
     @JsonProperty("message_id")
     private String message_id;
     @JsonProperty("conversation_id")
@@ -47,5 +45,4 @@ public class SourceDTO {
     private String service_identifier;
     private String logger_name;
     private String message;
-    private String host;
 }
