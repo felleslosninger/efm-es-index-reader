@@ -45,6 +45,27 @@ public class ElasticsearchIngestService {
         });
     }
 
+    public Flux<EsIndexDTO> openScrollIndex(String index) {
+        URI uri = getScrollDownloadURI(index);
+        log.trace("Fetching event data from Elasticsearch on URL: {}", uri);
+        String initiateScroll = "{\n" +
+                "  \"size\": 10000,\n" +
+                "  \"query\": {\n" +
+                "      \"match\": {\n" +
+                "          \"logger_name\": \"STATUS\"\n" +
+                "      }\n" +
+                "  }\n" +
+                "}";
+
+        return webClient.post()
+                .uri(uri)
+                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .acceptCharset(StandardCharsets.UTF_8)
+                .bodyValue(initiateScroll)
+                .retrieve()
+                .bodyToFlux(EsIndexDTO.class);
+    }
+
     private void getNextScrollFromIndex(String scrollId, FluxSink fluxSink) {
         getNextScroll(scrollId)
                 .doOnError(fluxSink::error)
@@ -82,27 +103,6 @@ public class ElasticsearchIngestService {
                 .acceptCharset(StandardCharsets.UTF_8)
                 .retrieve()
                 .bodyToFlux(ClearScrollDTO.class);
-    }
-
-    public Flux<EsIndexDTO> openScrollIndex(String index) {
-        URI uri = getScrollDownloadURI(index);
-        log.trace("Fetching event data from Elasticsearch on URL: {}", uri);
-        String initiateScroll = "{\n" +
-                "  \"size\": 10000,\n" +
-                "  \"query\": {\n" +
-                "      \"match\": {\n" +
-                "          \"logger_name\": \"STATUS\"\n" +
-                "      }\n" +
-                "  }\n" +
-                "}";
-
-        return webClient.post()
-                .uri(uri)
-                .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .acceptCharset(StandardCharsets.UTF_8)
-                .bodyValue(initiateScroll)
-                .retrieve()
-                .bodyToFlux(EsIndexDTO.class);
     }
 
     public Flux<EsIndexDTO> getNextScroll(String scrollId) {

@@ -5,7 +5,7 @@ import no.digdir.efmesindexreader.domain.data.EsIndexDTO;
 import no.digdir.efmesindexreader.handler.EsIndexHandler;
 import no.digdir.efmesindexreader.service.ElasticsearchIngestService;
 import no.digdir.efmesindexreader.service.LoggingProxySender;
-import no.digdir.efmesindexreader.service.LoggingProxyWebClientConfiguration;
+import no.digdir.efmesindexreader.service.WebClientConfiguration;
 import okhttp3.mockwebserver.MockWebServer;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
@@ -55,7 +55,7 @@ public class ElasticsearchWebClientTest {
 	private LoggingProxySender loggingProxySender;
 
 	@MockBean
-	private LoggingProxyWebClientConfiguration loggingProxyWebClientConfiguration;
+	private WebClientConfiguration webClientConfiguration;
 
 	URI esUri;
 
