@@ -5,14 +5,12 @@ import lombok.NoArgsConstructor;
 import no.difi.move.common.config.KeystoreProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
-import org.springframework.context.annotation.Configuration;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 
 @NoArgsConstructor
-@Configuration
 @ConfigurationProperties(prefix = "digdir")
 @Data
 public class EsIndexReaderProperties {

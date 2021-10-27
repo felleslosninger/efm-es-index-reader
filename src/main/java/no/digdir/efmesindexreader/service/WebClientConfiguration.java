@@ -14,6 +14,7 @@ import no.difi.move.common.oauth.JwtWebClient;
 import no.digdir.efmesindexreader.config.EsIndexReaderProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -33,6 +34,7 @@ import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 @EnableRetry
+@Configuration
 @EnableConfigurationProperties(EsIndexReaderProperties.class)
 @Slf4j
 public class WebClientConfiguration {
@@ -65,7 +67,7 @@ public class WebClientConfiguration {
         log.trace("Built logging proxy URL: {}", uri);
         return uri;
     }
-    
+
     @Bean(name = "EsWebClient")
     public static WebClient esWebClient(EsIndexReaderProperties properties) {
         return WebClient.builder()
