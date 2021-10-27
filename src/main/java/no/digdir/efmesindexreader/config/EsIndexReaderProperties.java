@@ -2,7 +2,9 @@ package no.digdir.efmesindexreader.config;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import no.difi.move.common.config.KeystoreProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.NestedConfigurationProperty;
 import org.springframework.context.annotation.Configuration;
 
 import javax.validation.Valid;
@@ -21,6 +23,9 @@ public class EsIndexReaderProperties {
     @Valid
     private LoggingProxyProperties loggingProxy;
 
+    @Valid
+    private Oidc oidc;
+
     @NotNull
     public long readTimeoutInMs;
     @NotNull
@@ -37,5 +42,20 @@ public class EsIndexReaderProperties {
     public static class LoggingProxyProperties {
         @NotNull
         private URL endpointURL;
+    }
+
+    @Data
+    public static class Oidc {
+        @NotNull
+        private String registrationId;
+        @NotNull
+        private String clientId;
+        private URL url;
+        @NestedConfigurationProperty
+        private KeystoreProperties keystore;
+        @NotNull
+        private String audience;
+        @NotNull
+        private String scopes;
     }
 }

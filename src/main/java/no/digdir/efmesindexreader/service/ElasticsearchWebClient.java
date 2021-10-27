@@ -6,40 +6,42 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import io.netty.channel.ChannelOption;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import no.digdir.efmesindexreader.config.EsIndexReaderProperties;
-import no.digdir.efmesindexreader.domain.data.ClearScrollDTO;
-import no.digdir.efmesindexreader.domain.data.EsIndexDTO;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.http.codec.json.Jackson2JsonDecoder;
 import org.springframework.http.codec.json.Jackson2JsonEncoder;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.stereotype.Component;
+import org.springframework.retry.annotation.EnableRetry;
 import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriComponentsBuilder;
-import reactor.core.publisher.Flux;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.tcp.TcpClient;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
 @Slf4j
-@Component
+@Configuration
+@EnableRetry
+@EnableConfigurationProperties(EsIndexReaderProperties.class)
 public class ElasticsearchWebClient {
-    private final EsIndexReaderProperties properties;
-    private final WebClient webClient;
+//Lage ein ny webclient builder som er ei bønne ?  Men den vil jo ha url som endrar seg for kvar gong
 
+    /*@Bean(name = "esWebClient")
+    WebClient createEsWebClient(EsIndexReaderProperties properties) {
+        return esWebClient(properties);
+    }*/
 
-    public ElasticsearchWebClient(EsIndexReaderProperties properties) {
-        this.properties = properties;
-        this.webClient = WebClient.builder()
+    @Primary
+    @Bean(name = "EsWebClient")
+    public static WebClient esWebClient(EsIndexReaderProperties properties) {
+        return WebClient.builder()
                 .exchangeStrategies(getExchangeStrategies())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .clientConnector(new ReactorClientHttpConnector(HttpClient.from(TcpClient
@@ -52,7 +54,22 @@ public class ElasticsearchWebClient {
                 .build();
     }
 
-    private ExchangeStrategies getExchangeStrategies() {
+    /*public ElasticsearchWebClient(EsIndexReaderProperties properties) {
+        this.properties = properties;
+        this.webClient = WebClient.builder()
+                .exchangeStrategies(getExchangeStrategies())
+                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                .clientConnector(new ReactorClientHttpConnector(HttpClient.from(TcpClient
+                        .create()
+                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.connectTimeoutInMs)
+                        .doOnConnected(connection -> {
+                            connection.addHandlerLast(new ReadTimeoutHandler(properties.readTimeoutInMs, TimeUnit.MILLISECONDS));
+                            connection.addHandlerLast(new WriteTimeoutHandler(properties.writeTimeoutInMs, TimeUnit.MILLISECONDS));
+                        }))))
+                .build();
+    } */
+
+    private static ExchangeStrategies getExchangeStrategies() {
         ObjectMapper objectMapper = getObjectMapper();
         return ExchangeStrategies.builder()
                 .codecs(config -> {
@@ -62,13 +79,13 @@ public class ElasticsearchWebClient {
                 }).build();
     }
 
-    private ObjectMapper getObjectMapper() {
+    private static ObjectMapper getObjectMapper() {
         ObjectMapper objectMapper = Jackson2ObjectMapperBuilder.json().build();
         objectMapper.configure(SerializationFeature.FLUSH_AFTER_WRITE_VALUE, false);
         objectMapper.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
         return objectMapper;
     }
-
+/*
     public Flux<EsIndexDTO> openScrollIndex(String index) {
         URI uri = getScrollDownloadURI(index);
         log.trace("Fetching event data from Elasticsearch on URL: {}", uri);
@@ -146,5 +163,5 @@ public class ElasticsearchWebClient {
         URI uri = builder.build().toUri();
         log.trace("Built Elasticsearch clear scroll URL: {}", uri);
         return uri;
-    }
+    } */
 }
