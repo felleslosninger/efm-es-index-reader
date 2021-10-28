@@ -26,6 +26,7 @@ import org.springframework.web.reactive.function.client.ExchangeStrategies;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.netty.http.client.HttpClient;
+import reactor.netty.resources.ConnectionProvider;
 import reactor.netty.tcp.TcpClient;
 
 import java.net.URI;
@@ -55,7 +56,8 @@ public class WebClientConfiguration {
 
     @Bean(name = "LoggingProxyWebClient")
     WebClient loggingProxyWebClient(EsIndexReaderProperties properties, JwtTokenClient jwtTokenClient) {
-        return JwtWebClient.create(getLoggingProxyURI(properties).toString(), properties.getOidc().getRegistrationId(), jwtTokenClient);
+        return JwtWebClient.createWithReactorClientConnector(
+                getLoggingProxyURI(properties).toString(), properties.getOidc().getRegistrationId(), jwtTokenClient, getReactorClientConnector());
     }
 
     @SneakyThrows(URISyntaxException.class)
@@ -84,6 +86,13 @@ public class WebClientConfiguration {
     }
 
 
+    private static ReactorClientHttpConnector getReactorClientConnector () {
+        ConnectionProvider connectionProvider = ConnectionProvider.builder("connProvider")
+                .maxConnections(100)
+                .pendingAcquireMaxCount(100000)
+                .build();
+        return new ReactorClientHttpConnector(HttpClient.create(connectionProvider));
+    }
 
     private static ExchangeStrategies getExchangeStrategies() {
         ObjectMapper objectMapper = getObjectMapper();
