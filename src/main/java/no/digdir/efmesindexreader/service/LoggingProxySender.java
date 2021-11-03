@@ -19,28 +19,18 @@ import java.nio.charset.StandardCharsets;
 public class LoggingProxySender {
     @Qualifier("LoggingProxyWebClient")
     private final WebClient webClient;
-
-    public void send(SourceDTO source) {
-        try {
-            sendToLoggingProxy(source)
-                    .subscribe(response -> log.info(response.toString()));
-        }
-        catch (Exception e) {
-            log.error("Error occured while sending log event to logging proxy", e);
-        }
-    }
-
     /**
      * Sends the log event to the logging proxy application to be put into Kafka. Each source is a log
      * SourceDTO.class describes the object.
      * @param source
      */
-    public Mono<JsonNode> sendToLoggingProxy(SourceDTO source) {
+    public Mono<JsonNode> send(SourceDTO source) {
         return webClient.post()
                 .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .acceptCharset(StandardCharsets.UTF_8)
                 .bodyValue(source)
                 .retrieve()
+                .onStatus(status -> status.value() == 401, clientResponse -> Mono.empty())
                 .bodyToMono(JsonNode.class);
     }
 }

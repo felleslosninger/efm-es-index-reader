@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Schedulers;
 
 @Component
 @RequiredArgsConstructor
@@ -18,7 +19,9 @@ public class EsIndexHandler {
         elasticsearchIngestService.getLogsFromIndex(request.queryParam("index").get())
             //.subscribe(hit ->System.out.println(hit.getSource()));
                 .limitRate(100)
-            .subscribe(hit -> loggingProxySender.send(hit.getSource()));
+                .flatMap(hit -> loggingProxySender.send(hit.getSource()))
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe(System.out::println);
         return ServerResponse.ok().bodyValue("OK, fetching index: " + request.queryParam("index").get());
     }
 

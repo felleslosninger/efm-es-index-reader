@@ -56,7 +56,7 @@ public class WebClientConfiguration {
 
     @Bean(name = "LoggingProxyWebClient")
     WebClient loggingProxyWebClient(EsIndexReaderProperties properties, JwtTokenClient jwtTokenClient) {
-        return JwtWebClient.createWithReactorClientConnector(
+        return JwtWebClient.createWithClientHttpConnector(
                 getLoggingProxyURI(properties).toString(), properties.getOidc().getRegistrationId(), jwtTokenClient, getReactorClientConnector());
     }
 
@@ -89,7 +89,6 @@ public class WebClientConfiguration {
     private static ReactorClientHttpConnector getReactorClientConnector () {
         ConnectionProvider connectionProvider = ConnectionProvider.builder("connProvider")
                 .maxConnections(100)
-                .pendingAcquireMaxCount(100000)
                 .build();
         return new ReactorClientHttpConnector(HttpClient.create(connectionProvider));
     }
