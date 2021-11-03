@@ -3,9 +3,9 @@ package no.digdir.efmesindexreader;
 import no.digdir.efmesindexreader.config.EsIndexReaderProperties;
 import no.digdir.efmesindexreader.domain.data.EsIndexDTO;
 import no.digdir.efmesindexreader.handler.EsIndexHandler;
-import no.digdir.efmesindexreader.service.ElasticsearchWebClient;
-import no.digdir.efmesindexreader.service.LoggingProxyService;
-import no.digdir.efmesindexreader.service.LoggingProxyWebClient;
+import no.digdir.efmesindexreader.service.ElasticsearchIngestService;
+import no.digdir.efmesindexreader.service.LoggingProxySender;
+import no.digdir.efmesindexreader.service.WebClientConfiguration;
 import okhttp3.mockwebserver.MockWebServer;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterAll;
@@ -22,6 +22,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.io.IOException;
@@ -40,19 +41,21 @@ public class ElasticsearchWebClientTest {
 
 	private EsIndexReaderProperties.ElasticsearchProperties elasticsearchProperties;
 
-	private ElasticsearchWebClient target;
+	private ElasticsearchIngestService target;
 
 	@Autowired
 	private WebTestClient webTestClient;
 
 	@MockBean
+	WebClient webClient;
+	@MockBean
 	private EsIndexHandler handler;
 
 	@MockBean
-	private LoggingProxyService loggingProxyService;
+	private LoggingProxySender loggingProxySender;
 
 	@MockBean
-	private LoggingProxyWebClient loggingProxyWebClient;
+	private WebClientConfiguration webClientConfiguration;
 
 	URI esUri;
 
@@ -71,7 +74,7 @@ public class ElasticsearchWebClientTest {
 	@BeforeEach
 	public void initialize() {
 		MockitoAnnotations.openMocks(this);
-		target = new ElasticsearchWebClient(properties);
+		target = new ElasticsearchIngestService(webClient, properties);
 
 		esUri = UriComponentsBuilder.fromUriString(properties.getElasticsearch().getEndpointURL() + "graylog_0/_search?scroll=1m&pretty").build().toUri();
 		scrollUri = UriComponentsBuilder.fromUriString(properties.getElasticsearch().getEndpointURL() + "_search/scroll?scroll=1m&scroll_id=" + scrollId + "&pretty").build().toUri();
