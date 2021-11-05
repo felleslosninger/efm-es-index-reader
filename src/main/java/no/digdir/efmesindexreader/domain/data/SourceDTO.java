@@ -1,11 +1,10 @@
 package no.digdir.efmesindexreader.domain.data;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 @Data
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SourceDTO {
@@ -21,7 +20,6 @@ public class SourceDTO {
     @JsonSetter
     @JsonAlias("@timestamp")
     public void setTimestamp(String timestamp) {
-        //this.timestamp = timestamp.replace("T", " ");
         this.timestamp = timestamp.replace("Z", "");
         this.timestamp = timestamp.replace(" ", "T");
         String substring = this.timestamp.substring(0, this.timestamp.lastIndexOf("."));
