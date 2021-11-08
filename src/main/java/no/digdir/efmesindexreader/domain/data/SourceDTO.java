@@ -21,7 +21,6 @@ public class SourceDTO {
     @JsonSetter
     @JsonAlias("@timestamp")
     public void setTimestamp(String timestamp) {
-        //this.timestamp = timestamp.replace("T", " ");
         this.timestamp = timestamp.replace("Z", "");
         this.timestamp = timestamp.replace(" ", "T");
         String substring = this.timestamp.substring(0, this.timestamp.lastIndexOf("."));
