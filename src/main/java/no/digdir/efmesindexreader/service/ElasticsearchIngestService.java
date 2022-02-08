@@ -13,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.FluxSink;
@@ -41,7 +42,6 @@ public class ElasticsearchIngestService {
     public Flux<HitDTO> getLogsFromIndex(String index) {
         return Flux.create(fluxSink -> {
             openScrollIndex(index)
-                    .doOnError(fluxSink::error)
                     .onErrorResume(Exception.class, ex -> Mono.empty())
                     .subscribe(esDto -> {
                         filterStatusAndAddProcessIdentifier(esDto.getHits().getHitDtoList(), fluxSink);
@@ -74,12 +74,12 @@ public class ElasticsearchIngestService {
 
     private void getNextScrollFromIndex(String scrollId, FluxSink fluxSink) {
         getNextScroll(scrollId)
-                .doOnError(fluxSink::error)
+                .onErrorResume(WebClientRequestException.class, e -> Mono.empty())
                 .subscribe(esDto -> {
                     filterStatusAndAddProcessIdentifier(esDto.getHits().getHitDtoList(), fluxSink);
                     if (esDto.getHits().getHitDtoList().isEmpty()) {
                         clearScroll(scrollId)
-                                .doOnError(fluxSink::error)
+                                .onErrorResume(WebClientRequestException.class, e -> Mono.empty())
                                 .subscribe(clearScrollDTO -> {
                                     if (clearScrollDTO.isSucceeded()) {
                                         log.trace("Successfully cleared scroll. Ready for another index");
