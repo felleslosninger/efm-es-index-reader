@@ -83,23 +83,7 @@ public class WebClientConfiguration {
                         })))
                 .build();
     }
-
-    /* TODO delete if above refactoring works
-
-            return WebClient.builder()
-                .exchangeStrategies(getExchangeStrategies())
-                .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .clientConnector(new ReactorClientHttpConnector(HttpClient.from(TcpClient
-                        .create()
-                        .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.connectTimeoutInMs)
-                        .doOnConnected(connection -> {
-                            connection.addHandlerLast(new ReadTimeoutHandler(properties.readTimeoutInMs, TimeUnit.MILLISECONDS));
-                            connection.addHandlerLast(new WriteTimeoutHandler(properties.writeTimeoutInMs, TimeUnit.MILLISECONDS));
-                        }))))
-                .build();
-     */
-
-
+    
     private static ReactorClientHttpConnector getReactorClientConnector () {
         ConnectionProvider connectionProvider = ConnectionProvider.builder("connProvider")
                 .maxConnections(100)
