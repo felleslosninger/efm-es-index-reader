@@ -27,7 +27,6 @@ import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.resources.ConnectionProvider;
-import reactor.netty.tcp.TcpClient;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -75,22 +74,25 @@ public class WebClientConfiguration {
         return WebClient.builder()
                 .exchangeStrategies(getExchangeStrategies())
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-                .clientConnector(new ReactorClientHttpConnector(HttpClient.from(TcpClient
+                .clientConnector(new ReactorClientHttpConnector(HttpClient
                         .create()
                         .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, properties.connectTimeoutInMs)
                         .doOnConnected(connection -> {
                             connection.addHandlerLast(new ReadTimeoutHandler(properties.readTimeoutInMs, TimeUnit.MILLISECONDS));
                             connection.addHandlerLast(new WriteTimeoutHandler(properties.writeTimeoutInMs, TimeUnit.MILLISECONDS));
-                        }))))
+                        })))
                 .build();
     }
-
-
+    
     private static ReactorClientHttpConnector getReactorClientConnector () {
         ConnectionProvider connectionProvider = ConnectionProvider.builder("connProvider")
                 .maxConnections(100)
+                .pendingAcquireMaxCount(50000)
+                //.pendingAcquireTimeout(Duration.ofSeconds(25))
                 .build();
-        return new ReactorClientHttpConnector(HttpClient.create(connectionProvider));
+        return new ReactorClientHttpConnector(HttpClient
+                .create(connectionProvider)
+                .option(ChannelOption.SO_KEEPALIVE, true));
     }
 
     private static ExchangeStrategies getExchangeStrategies() {

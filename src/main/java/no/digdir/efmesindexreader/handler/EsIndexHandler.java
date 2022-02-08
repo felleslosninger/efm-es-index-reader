@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import no.digdir.efmesindexreader.service.ElasticsearchIngestService;
 import no.digdir.efmesindexreader.service.LoggingProxySender;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClientRequestException;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
@@ -17,10 +18,12 @@ public class EsIndexHandler {
 
     public Mono<ServerResponse> getEsIndex(ServerRequest request) {
         elasticsearchIngestService.getLogsFromIndex(request.queryParam("index").get())
-            //.subscribe(hit ->System.out.println(hit.getSource()));
+                //.subscribe(hit ->System.out.println(hit.getSource()));
                 .limitRate(100)
-                .flatMap(hit -> loggingProxySender.send(hit.getSource()))
+                .flatMap(hit -> loggingProxySender.send(hit.getSource())
+                        .onErrorResume(WebClientRequestException.class, e -> Mono.empty()))
                 .subscribeOn(Schedulers.boundedElastic())
+                .onErrorResume(InternalError.class, it -> Mono.empty()).next()
                 .subscribe(System.out::println);
         return ServerResponse.ok().bodyValue("OK, fetching index: " + request.queryParam("index").get());
     }
