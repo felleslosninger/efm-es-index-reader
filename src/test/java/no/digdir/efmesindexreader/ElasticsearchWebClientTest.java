@@ -46,7 +46,7 @@ public class ElasticsearchWebClientTest {
 	@Autowired
 	private WebTestClient webTestClient;
 
-	@MockBean
+	@MockBean(name = "EsWebClient")
 	WebClient webClient;
 	@MockBean
 	private EsIndexHandler handler;

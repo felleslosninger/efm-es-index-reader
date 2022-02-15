@@ -55,8 +55,9 @@ public class WebClientConfiguration {
 
     @Bean(name = "LoggingProxyWebClient")
     WebClient loggingProxyWebClient(EsIndexReaderProperties properties, JwtTokenClient jwtTokenClient) {
-        return JwtWebClient.createWithClientHttpConnector(
-                getLoggingProxyURI(properties).toString(), properties.getOidc().getRegistrationId(), jwtTokenClient, getReactorClientConnector());
+        return JwtWebClient.builder(getLoggingProxyURI(properties).toString(), properties.getOidc().getRegistrationId(), jwtTokenClient)
+                .clientConnector(getReactorClientConnector())
+                .build();
     }
 
     @SneakyThrows(URISyntaxException.class)
