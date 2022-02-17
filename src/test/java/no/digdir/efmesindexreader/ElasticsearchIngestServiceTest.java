@@ -30,16 +30,15 @@ import java.net.URI;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 //@AutoConfigureWebTestClient
+//@WebFluxTest(controllers = EsIndexRouter.class,excludeAutoConfiguration = {ReactiveSecurityAutoConfiguration.class})
 @ExtendWith(SpringExtension.class)
 @TestPropertySource("classpath:/config/application-test.properties")
 @ActiveProfiles("test")
-public class ElasticsearchWebClientTest {
+public class ElasticsearchIngestServiceTest {
 	private static MockWebServer mockWebServer;
 
 	@Autowired
 	private EsIndexReaderProperties properties;
-
-	private EsIndexReaderProperties.ElasticsearchProperties elasticsearchProperties;
 
 	private ElasticsearchIngestService target;
 
@@ -114,16 +113,6 @@ public class ElasticsearchWebClientTest {
 				.expectStatus().isOk()
 				.expectBody(EsIndexDTO.class)
 				.consumeWith(response -> Assertions.assertThat(response.getResponseBody()).isNotNull());
-
-	}
-
-	@Test
-	public void getNextScroll_shouldReturnScrollSuccessfully() {
-
-	}
-
-	@Test
-	public void clearScroll_shouldSucceed() {
 
 	}
 }
