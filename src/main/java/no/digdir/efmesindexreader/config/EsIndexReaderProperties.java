@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.NestedConfigurationProperty;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import java.net.URL;
 
@@ -34,6 +35,9 @@ public class EsIndexReaderProperties {
     public static class ElasticsearchProperties {
         @NotNull
         private URL endpointURL;
+        @NotNull
+        @NotEmpty
+        private String schedulerCronExpr;
     }
 
     @Data
