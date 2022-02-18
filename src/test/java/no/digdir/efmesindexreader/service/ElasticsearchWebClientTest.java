@@ -1,7 +1,6 @@
 package no.digdir.efmesindexreader.service;
 
 import no.digdir.efmesindexreader.EfmEsIndexReaderApplication;
-import no.digdir.efmesindexreader.config.EsIndexReaderProperties;
 import no.digdir.efmesindexreader.domain.data.EsIndexDTO;
 import no.digdir.efmesindexreader.handler.EsIndexHandler;
 import no.digdir.efmesindexreader.router.EsIndexRouter;
@@ -15,7 +14,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.security.reactive.ReactiveSecurityAutoConfiguration;
 import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,22 +23,22 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
-import java.net.URI;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+//@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 //@AutoConfigureWebTestClient
-@ContextConfiguration(classes = EfmEsIndexReaderApplication.class)
-@WebFluxTest(controllers = EsIndexRouter.class,excludeAutoConfiguration = {ReactiveSecurityAutoConfiguration.class})
 //@ExtendWith(SpringExtension.class)
 //@WebMvcTest(EsIndexRouter.class)
+//@AutoConfigureWebFlux
+@ContextConfiguration(classes = EfmEsIndexReaderApplication.class)
+@WebFluxTest(controllers = EsIndexRouter.class,excludeAutoConfiguration = {ReactiveSecurityAutoConfiguration.class})
 @TestPropertySource("classpath:/config/application-test.properties")
 @ActiveProfiles("test")
 public class ElasticsearchWebClientTest {
 
     private static MockWebServer mockWebServer;
 
-    @Autowired
-    private EsIndexReaderProperties properties;
+//    @Autowired
+//    private EsIndexReaderProperties properties;
 
 
     @Autowired
@@ -57,18 +55,10 @@ public class ElasticsearchWebClientTest {
     @MockBean
     private WebClientConfiguration webClientConfiguration;
 
-    URI esUri;
-
-    URI scrollUri;
-
-    URI deleteScrollUri;
-
-    String scrollId = "UniqueScrollId";
-
     @BeforeAll
-    public static void setUp() {
-        //mockWebServer = new MockWebServer();
-        //mockWebServer.start();
+    public static void setUp() throws IOException {
+        mockWebServer = new MockWebServer();
+        mockWebServer.start();
     }
 
     @BeforeEach
@@ -78,7 +68,7 @@ public class ElasticsearchWebClientTest {
 
     @AfterAll
     public static void tearDown() throws IOException {
-        //mockWebServer.shutdown();
+        mockWebServer.shutdown();
 
     }
     @Test
