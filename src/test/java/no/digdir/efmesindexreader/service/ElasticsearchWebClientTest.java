@@ -29,7 +29,7 @@ public class ElasticsearchWebClientTest {
     private ElasticsearchIngestService elasticsearchIngestService;
 
     @Test
-    public void openScrollIndex_shouldOpenScrollSuccessfully() {
+    public void routerEndpointShouldReturnExpectedValue() {
         webTestClient.get().uri("/esindex/all")
             .accept(MediaType.APPLICATION_JSON)
             .exchange()
