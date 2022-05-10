@@ -11,21 +11,13 @@ import org.springframework.security.web.server.util.matcher.ServerWebExchangeMat
 @Configuration
 @EnableWebFluxSecurity
 public class EsIndexReaderSecurityConfig {
-
     @Bean
     @Order(0)
-    public SecurityWebFilterChain permitAll(ServerHttpSecurity http) {
+    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         return http.securityMatcher(ServerWebExchangeMatchers.anyExchange())
                 .cors().and().csrf().disable()
-                .authorizeExchange(c -> c.anyExchange().permitAll())
+                .authorizeExchange(c -> c.pathMatchers("/actuator/**").permitAll()
+                        .anyExchange().authenticated())
                 .httpBasic().and().build();
-    }
-
-    @Bean
-    public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
-        return http.authorizeExchange()
-                .pathMatchers("/actuator/**").permitAll()
-                .anyExchange().authenticated()
-                .and().build();
     }
 }
