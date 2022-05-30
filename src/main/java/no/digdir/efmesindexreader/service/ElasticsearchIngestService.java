@@ -42,7 +42,10 @@ public class ElasticsearchIngestService {
     public Flux<HitDTO> getLogsFromIndex(String index) {
         return Flux.create(fluxSink -> {
             openScrollIndex(index)
-                    .onErrorResume(Exception.class, ex -> Mono.empty())
+                    .onErrorResume(Exception.class, ex -> {
+                        log.error("Error occurred while trying to access index, skipping index...", ex);
+                        return Mono.empty();
+                    })
                     .subscribe(esDto -> {
                         filterStatusAndAddProcessIdentifier(esDto.getHits().getHitDtoList(), fluxSink);
                         getNextScrollFromIndex(esDto.getScrollId(), fluxSink);
