@@ -1,4 +1,4 @@
-FROM openjdk:11.0.12-jre-slim
+FROM openjdk:11.0.14-jre
 
 RUN groupadd -o -g 1000 java \
     && useradd -o -r -m -u 1000 -g 1000 java
