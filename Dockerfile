@@ -10,7 +10,7 @@ ENV APP_DIR=/opt/es-index-reader \
 
 ADD /target/es-index-reader.jar ${APP_DIR}/es-index-reader.jar
 
-
+RUN apk --no-cache add curl
 RUN chown -R java:java ${APP_DIR}
 RUN chmod +x ${APP_DIR}/
 
