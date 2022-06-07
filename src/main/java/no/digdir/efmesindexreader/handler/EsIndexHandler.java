@@ -1,6 +1,7 @@
 package no.digdir.efmesindexreader.handler;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import no.digdir.efmesindexreader.service.ElasticsearchIngestService;
 import no.digdir.efmesindexreader.service.LoggingProxySender;
 import org.springframework.stereotype.Component;
@@ -14,6 +15,7 @@ import reactor.util.retry.Retry;
 import java.time.Duration;
 
 @Component
+@Slf4j
 @RequiredArgsConstructor
 public class EsIndexHandler {
     private final ElasticsearchIngestService elasticsearchIngestService;
@@ -24,7 +26,10 @@ public class EsIndexHandler {
                 .limitRate(100)
                 .flatMap(hit -> loggingProxySender.send(hit.getSource())
                         .retryWhen(Retry.fixedDelay(100, Duration.ofSeconds(3)))
-                        .onErrorResume(WebClientRequestException.class, e -> Mono.empty()))
+                        .onErrorResume(WebClientRequestException.class, wcre ->  {
+                            log.error("Error while sending log status message to the logging proxy...", wcre);
+                            return Mono.empty();
+                        }))
                 .subscribeOn(Schedulers.boundedElastic())
                 .onErrorResume(InternalError.class, it -> Mono.empty()).next()
                 .subscribe(System.out::println);
