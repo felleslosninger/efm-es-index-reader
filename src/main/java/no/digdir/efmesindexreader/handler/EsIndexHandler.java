@@ -9,6 +9,9 @@ import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
+import reactor.util.retry.Retry;
+
+import java.time.Duration;
 
 @Component
 @RequiredArgsConstructor
@@ -18,9 +21,9 @@ public class EsIndexHandler {
 
     public Mono<ServerResponse> getEsIndex(ServerRequest request) {
         elasticsearchIngestService.getLogsFromIndex(request.queryParam("index").get())
-                //.subscribe(hit ->System.out.println(hit.getSource()));
                 .limitRate(100)
                 .flatMap(hit -> loggingProxySender.send(hit.getSource())
+                        .retryWhen(Retry.fixedDelay(100, Duration.ofSeconds(3)))
                         .onErrorResume(WebClientRequestException.class, e -> Mono.empty()))
                 .subscribeOn(Schedulers.boundedElastic())
                 .onErrorResume(InternalError.class, it -> Mono.empty()).next()
