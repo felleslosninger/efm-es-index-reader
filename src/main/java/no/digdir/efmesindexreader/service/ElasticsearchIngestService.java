@@ -42,8 +42,8 @@ public class ElasticsearchIngestService {
     public Flux<HitDTO> getLogsFromIndex(String index) {
         return Flux.create(fluxSink -> {
             openScrollIndex(index)
-                    .onErrorResume(Exception.class, ex -> {
-                        log.error("Error occurred while trying to access index, skipping index...", ex);
+                    .onErrorResume(WebClientRequestException.class, wcre -> {
+                        log.error("Error occurred while trying to access index, skipping index...", wcre);
                         return Mono.empty();
                     })
                     .subscribe(esDto -> {
@@ -77,7 +77,10 @@ public class ElasticsearchIngestService {
 
     private void getNextScrollFromIndex(String scrollId, FluxSink fluxSink) {
         getNextScroll(scrollId)
-                .onErrorResume(WebClientRequestException.class, e -> Mono.empty())
+                .onErrorResume(WebClientRequestException.class, wcre -> {
+                    log.error("Error occured when fetching the next part of the index... ", wcre);
+                    return Mono.empty();
+                } )
                 .subscribe(esDto -> {
                     filterStatusAndAddProcessIdentifier(esDto.getHits().getHitDtoList(), fluxSink);
                     if (esDto.getHits().getHitDtoList().isEmpty()) {
