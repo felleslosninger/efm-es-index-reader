@@ -6,7 +6,7 @@ RUN groupadd -o -g 1000 java \
 EXPOSE 9086
 
 ENV APP_DIR=/opt/es-index-reader \
-    JAVA_OPTS="-Xms=6144M -Xmx6144M"
+    JAVA_OPTS="-Xmx6G"
 
 ADD /target/es-index-reader.jar ${APP_DIR}/es-index-reader.jar
 
