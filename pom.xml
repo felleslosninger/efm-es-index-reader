@@ -10,7 +10,7 @@
 	</parent>
 	<groupId>no.digdir</groupId>
 	<artifactId>es-index-reader</artifactId>
-	<version>1.4.0-SNAPSHOT</version>
+	<version>1.4.0</version>
 	<name>es-index-reader</name>
 	<description>Retrieves Elasticsearch index to send log event data to logging proxy.</description>
 
