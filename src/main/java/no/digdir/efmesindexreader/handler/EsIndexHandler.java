@@ -2,6 +2,7 @@ package no.digdir.efmesindexreader.handler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import no.digdir.efmesindexreader.config.EsIndexReaderProperties;
 import no.digdir.efmesindexreader.service.ElasticsearchIngestService;
 import no.digdir.efmesindexreader.service.LoggingProxySender;
 import org.springframework.stereotype.Component;
@@ -20,23 +21,32 @@ import java.time.Duration;
 public class EsIndexHandler {
     private final ElasticsearchIngestService elasticsearchIngestService;
     private final LoggingProxySender loggingProxySender;
+    private final EsIndexReaderProperties properties;
 
     public Mono<ServerResponse> getEsIndex(ServerRequest request) {
-        elasticsearchIngestService.getLogsFromIndex(request.queryParam("index").get())
-                .limitRate(100)
-                .flatMap(hit -> loggingProxySender.send(hit.getSource())
-                        .retryWhen(Retry.fixedDelay(100, Duration.ofSeconds(3)))
-                        .onErrorResume(WebClientRequestException.class, wcre ->  {
-                            log.error("Error while sending log status message to the logging proxy...", wcre);
-                            return Mono.empty();
-                        }))
-                .subscribeOn(Schedulers.boundedElastic())
-                .onErrorResume(InternalError.class, it -> Mono.empty()).next()
-                .subscribe(System.out::println);
-        return ServerResponse.ok().bodyValue("OK, fetching index: " + request.queryParam("index").get());
+        if(request.queryParam("index").isPresent()) {
+            String esIndex = request.queryParam("index").get();
+            elasticsearchIngestService.getLogsFromIndex(esIndex)
+                    .limitRate(100)
+                    .flatMap(hit -> loggingProxySender.send(hit.getSource())
+                            .retryWhen(Retry.fixedDelay(100, Duration.ofSeconds(3)))
+                            .onErrorResume(WebClientRequestException.class, wcre ->  {
+                                log.error("Error while sending log status message to the logging proxy...", wcre);
+                                return Mono.empty();
+                            }))
+                    .subscribeOn(Schedulers.boundedElastic())
+                    .onErrorResume(InternalError.class, it -> Mono.empty()).next()
+                    .subscribe(
+                            System.out::println,
+                            Throwable::printStackTrace,
+                            () -> log.info("Finished sending index: {} to logging-proxy", esIndex),
+                            s -> s.request(properties.getLoggingProxy().getRequestSize())
+                    );
+            return ServerResponse.ok().bodyValue("OK, fetching index: " + esIndex);
+        } else {
+            log.error("Could not find the requested index name.");
+            return ServerResponse.notFound().build();
+        }
     }
 
-    public Mono<ServerResponse> getAllCollectedIndex(ServerRequest serverRequest) {
-        return ServerResponse.ok().bodyValue("i'm a placeholder for a list of collected indexes which requires a DB");
-    }
 }

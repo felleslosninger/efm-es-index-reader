@@ -23,7 +23,7 @@
 
 	<properties>
 		<java.version>11</java.version>
-		<move-common.version>1.8.0</move-common.version>
+		<move-common.version>1.16.0</move-common.version>
 	</properties>
 	<dependencies>
 		<dependency>
