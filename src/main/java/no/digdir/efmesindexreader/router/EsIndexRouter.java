@@ -23,8 +23,7 @@ public class EsIndexRouter {
         return RouterFunctions
                 .route(GET("/esindex")
                                 .and(queryParam("index", Objects::nonNull))
-                        , esIndexHandler::getEsIndex)
-                .andRoute(GET("/esindex/all"), esIndexHandler::getAllCollectedIndex);
+                        , esIndexHandler::getEsIndex);
     }
 }
 

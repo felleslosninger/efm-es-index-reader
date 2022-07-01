@@ -56,7 +56,7 @@ public class ElasticsearchIngestService {
 
     public Flux<EsIndexDTO> openScrollIndex(String index) {
         URI uri = getScrollDownloadURI(index);
-        log.trace("Fetching event data from Elasticsearch on URL: {}", uri);
+        log.info("Fetching status event data from Elasticsearch on URL: {}", uri);
         String initiateScroll = "{\n" +
                 "  \"size\": 10000,\n" +
                 "  \"query\": {\n" +
@@ -78,7 +78,7 @@ public class ElasticsearchIngestService {
     private void getNextScrollFromIndex(String scrollId, FluxSink fluxSink) {
         getNextScroll(scrollId)
                 .onErrorResume(WebClientRequestException.class, wcre -> {
-                    log.error("Error occured when fetching the next part of the index... ", wcre);
+                    log.error("Error occurred when fetching the next part of the index... ", wcre);
                     return Mono.empty();
                 } )
                 .subscribe(esDto -> {
@@ -104,10 +104,8 @@ public class ElasticsearchIngestService {
     private HitDTO setPossiblyMissingProcessIdentifier(HitDTO hit) {
         if (hit.getSource().getProcess_identifier() == null) {
             hit.getSource().setProcess_identifier(findProcessIdentifier(hit.getSource()));
-            return hit;
-        } else {
-            return hit;
         }
+        return hit;
     }
 
     public String findProcessIdentifier(SourceDTO source) {

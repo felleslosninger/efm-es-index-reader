@@ -44,6 +44,8 @@ public class EsIndexReaderProperties {
     public static class LoggingProxyProperties {
         @NotNull
         private URL endpointURL;
+        @NotNull
+        private long requestSize;
     }
 
     @Data
